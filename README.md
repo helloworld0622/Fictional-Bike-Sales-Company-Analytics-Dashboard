@@ -176,6 +176,7 @@ erDiagram
 
     DIM_CUSTOMER ||--|| DIM_RFM : CustomerKey
     DIM_RFM }o--|| DIM_CUSTOMER_SEGMENT : RFM
+```
 
 ---
 
