@@ -110,7 +110,6 @@ Each customer receives a three-digit RFM score (R, F, M ∈ {1,…,5}), which is
 All segment definitions are centrally maintained in the marts layer.
 No segmentation logic is implemented or overridden in downstream BI tools.
 
----
 
 ## Star Schema
 
