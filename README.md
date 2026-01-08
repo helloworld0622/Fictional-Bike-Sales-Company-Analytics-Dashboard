@@ -119,45 +119,92 @@ No segmentation logic is implemented or overridden in downstream BI tools.
 
 ```mermaid
 erDiagram
+
     FACT_SALES {
-        int SalesOrderLineKey PK
-        int CustomerKey FK
-        int ResellerKey FK
-        int ProductKey FK
-        int SalesTerritoryKey FK
-        int OrderDateKey FK
-        int ShipDateKey FK
-        int DueDateKey FK
+        int    SalesOrderLineKey PK
+        int    CustomerKey FK
+        int    ResellerKey FK
+        int    ProductKey FK
+        int    SalesTerritoryKey FK
+        int    OrderDateKey FK
+        int    ShipDateKey FK
+        int    DueDateKey FK
+
+        string Channel
+        int    OrderQuantity
+        float  UnitPrice
+        float  UnitPriceDiscountPct
+        float  ExtendedAmount
+        float  SalesAmount
+        float  ProductStandardCost
+        float  TotalProductCost
+        float  GrossProfit
+        float  GrossProfitRatio
+        int    DaysDifference
+        int    DistinctPurchaseCount
+        date   OrderDate
+        date   ShipDate
     }
 
     DIM_CUSTOMER {
-        int CustomerKey PK
+        int    CustomerKey PK
         string CustomerID
+        string Customer
+        string City
+        string StateProvince
+        string CountryRegion
+        string PostalCode
     }
 
     DIM_RESELLER {
-        int ResellerKey PK
+        int    ResellerKey PK
         string ResellerID
+        string Reseller
+        string BusinessType
+        string City
+        string StateProvince
+        string CountryRegion
+        string PostalCode
     }
 
     DIM_PRODUCT {
-        int ProductKey PK
+        int    ProductKey PK
         string Product
+        string SKU
+        string Color
+        string Model
+        string Category
+        string Subcategory
+        float  ListPrice
+        float  StandardCost
     }
 
     DIM_SALES_TERRITORY {
-        int SalesTerritoryKey PK
+        int    SalesTerritoryKey PK
         string Country
         string Region
+        string Group
     }
 
     DIM_DATE {
-        int DateKey PK
-        date Date
+        int    DateKey PK
+        date   Date
+        int    Year
+        int    Month
+        int    MonthKey
+        string MonthName
+        int    FiscalQuarter
+        string FiscalYear
     }
 
     DIM_RFM {
-        int CustomerKey PK
+        int    CustomerKey PK
+        int    RValue
+        int    FValue
+        float  MValue
+        int    RScore
+        int    FScore
+        int    MScore
         string RFM
     }
 
@@ -166,6 +213,7 @@ erDiagram
         string Segment
     }
 
+    %% Core star schema relationships
     FACT_SALES }o--|| DIM_CUSTOMER : CustomerKey
     FACT_SALES }o--|| DIM_RESELLER : ResellerKey
     FACT_SALES }o--|| DIM_PRODUCT : ProductKey
@@ -174,6 +222,7 @@ erDiagram
     FACT_SALES }o--|| DIM_DATE : ShipDateKey
     FACT_SALES }o--|| DIM_DATE : DueDateKey
 
+    %% Analytical extensions
     DIM_CUSTOMER ||--|| DIM_RFM : CustomerKey
     DIM_RFM }o--|| DIM_CUSTOMER_SEGMENT : RFM
 ```
