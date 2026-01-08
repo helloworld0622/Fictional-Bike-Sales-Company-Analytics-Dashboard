@@ -113,9 +113,11 @@ No segmentation logic is implemented or overridden in downstream BI tools.
 ---
 
 ## Star Schema
+
 - `fact_sales` contains revenue, gross profit, quantities, and channel
 - Dimension tables provide descriptive slicing and filtering
 - Power BI connects **directly to marts**, without additional transformation layers
+
 ```mermaid
 erDiagram
     FACT_SALES {
