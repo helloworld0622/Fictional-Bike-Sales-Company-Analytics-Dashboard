@@ -1,0 +1,59 @@
+name: 'azure_adw_project'
+version: '1.0'
+profile: 'azure_adw_project'   
+
+models:
+  azure_adw_project:
+    staging:
+      +materialized: view
+      +schema: stg          
+    marts:
+      +materialized: view
+      +schema: marts        
+
+on-run-end:
+  - >
+      {% set results = run_results | list %}
+
+      {% set err_cnt  = results
+           | selectattr('status', 'equalto', 'error')
+           | list
+           | length %}
+
+      {% set warn_cnt = results
+           | selectattr('status', 'equalto', 'warn')
+           | list
+           | length %}
+
+      {% if err_cnt > 0 %}
+        {% set status = 'fail' %}
+      {% elif warn_cnt > 0 %}
+        {% set status = 'warn' %}
+      {% else %}
+        {% set status = 'success' %}
+      {% endif %}
+
+      {% set note_text = (
+           results
+           | rejectattr('status', 'equalto', 'success')
+           | map(attribute='node.name')
+           | list
+           | join(', ')
+         ) %}
+
+      insert into dbt.Run_Audit_Log (
+        RunType,
+        Status,
+        ErrorCount,
+        WarningCount,
+        TriggerSource,
+        Notes
+      )
+      values (
+        'dbt_test',
+        '{{ status | trim }}',
+        {{ err_cnt }},
+        {{ warn_cnt }},
+        'manual',
+        '{{ note_text | replace("'", "''") }}'
+      );

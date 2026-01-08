@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: dim_customer
+    columns:
+      - name: CustomerKey
+        tests:
+          - not_null
+          - unique
+
+      - name: CustomerID
+        tests:
+          - not_null
+
+  - name: dim_product
+    columns:
+      - name: ProductKey
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_reseller
+    columns:
+      - name: ResellerKey
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_sales_territory
+    columns:
+      - name: SalesTerritoryKey
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_date
+    columns:
+      - name: DateKey
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_rfm
+    columns:
+      - name: CustomerKey
+        tests:
+          - not_null
+          - unique
+
+  - name: fact_sales
+    columns:
+      - name: SalesOrderLineKey
+        tests:
+          - not_null

@@ -1,0 +1,17 @@
+# ---- dbt ----
+profiles.yml
+target/
+dbt_packages/
+
+# ---- Python ----
+venv/
+__pycache__/
+*.pyc
+.env
+
+# ---- Logs ----
+logs/
+*.log
+
+# ---- OS ----
+.DS_Store

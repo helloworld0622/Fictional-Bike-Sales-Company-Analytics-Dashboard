@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  dbt:
+    build: .
+    container_name: dbt_azure
+    volumes:
+      - ./project:/usr/app
+      - ./profiles.yml:/root/.dbt/profiles.yml
+    working_dir: /usr/app
+    tty: true
+    stdin_open: true
