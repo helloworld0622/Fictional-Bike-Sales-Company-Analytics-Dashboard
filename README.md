@@ -109,12 +109,14 @@ Each customer receives a three-digit RFM score (R, F, M ∈ {1,…,5}), which is
 
 All segment definitions are centrally maintained in the marts layer.
 No segmentation logic is implemented or overridden in downstream BI tools.
+
 ---
 
 ## Star Schema
 - `fact_sales` contains revenue, gross profit, quantities, and channel
 - Dimension tables provide descriptive slicing and filtering
 - Power BI connects **directly to marts**, without additional transformation layers
+```mermaid
 erDiagram
     FACT_SALES {
         int SalesOrderLineKey PK
@@ -163,7 +165,6 @@ erDiagram
         string Segment
     }
 
-    %% Core fact-to-dimension relationships
     FACT_SALES }o--|| DIM_CUSTOMER : CustomerKey
     FACT_SALES }o--|| DIM_RESELLER : ResellerKey
     FACT_SALES }o--|| DIM_PRODUCT : ProductKey
@@ -172,7 +173,6 @@ erDiagram
     FACT_SALES }o--|| DIM_DATE : ShipDateKey
     FACT_SALES }o--|| DIM_DATE : DueDateKey
 
-    %% Analytical dimensions
     DIM_CUSTOMER ||--|| DIM_RFM : CustomerKey
     DIM_RFM }o--|| DIM_CUSTOMER_SEGMENT : RFM
 
