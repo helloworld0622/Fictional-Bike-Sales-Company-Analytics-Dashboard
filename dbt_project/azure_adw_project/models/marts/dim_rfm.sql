@@ -33,10 +33,8 @@ recency as (
         datediff(day, b.LastOrderDate,
             (select max(orderdate) from {{ ref('fact_sales') }})
         ) as R_Value,
-
         b.F_Value,
         b.M_Value,
-
         case when b.M_Value > 0
             then log(b.M_Value + 1.0)
             else 0.0
@@ -49,7 +47,6 @@ rf_quantiles as (
         PERCENTILE_CONT(0.4) WITHIN GROUP (order by cast(R_Value as float)) over () as r_p40,
         PERCENTILE_CONT(0.6) WITHIN GROUP (order by cast(R_Value as float)) over () as r_p60,
         PERCENTILE_CONT(0.8) WITHIN GROUP (order by cast(R_Value as float)) over () as r_p80,
-
         PERCENTILE_CONT(0.2) WITHIN GROUP (order by cast(F_Value as float)) over () as f_p20,
         PERCENTILE_CONT(0.4) WITHIN GROUP (order by cast(F_Value as float)) over () as f_p40,
         PERCENTILE_CONT(0.6) WITHIN GROUP (order by cast(F_Value as float)) over () as f_p60,
@@ -65,7 +62,6 @@ m_quantiles as (
     from recency
     where M_Value > 0
 ),
-
 bounds as (
     select top 1
         rf.*, m.m_p20, m.m_p40, m.m_p60, m.m_p80
@@ -108,15 +104,12 @@ scored as (
 select
     s.CustomerKey,
     s.CustomerKey as [Customer ID],
-
     s.R_Value as [R Value],
     s.F_Value as [F Value],
     s.M_Value as [M Value],
-
     cast(s.R_Score as varchar(1)) as [R Score],
     cast(s.F_Score as varchar(1)) as [F Score],
     cast(s.M_Score as varchar(1)) as [M Score],
-
     concat(
         cast(s.R_Score as varchar(1)),
         cast(s.F_Score as varchar(1)),

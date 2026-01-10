@@ -1,7 +1,7 @@
 {{ config(materialized='view') }}
 
 with c as (
-    -- 从 staging 拿到基础字段 + AccountNumber
+    -- Get the basic fields from staging + AccountNumber
     select
         customer_id,
         person_id,
@@ -9,7 +9,6 @@ with c as (
         account_number
     from {{ ref('stg_customer') }}
 ),
-
 p as (
     select
         BusinessEntityID,
@@ -17,8 +16,7 @@ p as (
         LastName
     from Person.Person
 ),
-
--- 先把每个 BusinessEntityID 的地址压成一条
+-- compress the address of each BusinessEntityID
 addr_dedup as (
     select
         bea.BusinessEntityID,
@@ -30,11 +28,11 @@ addr_dedup as (
             partition by bea.BusinessEntityID
             order by
                 case at.Name
-                    when 'Home' then 1       -- 优先 Home 地址
+                    when 'Home' then 1       -- Deduplicate addresses by prioritizing Home, then Main Office
                     when 'Main Office' then 2
                     else 3
                 end,
-                a.AddressID                 -- 再按 AddressID 稍微固定一下顺序
+                a.AddressID                 
         ) as rn
     from Person.BusinessEntityAddress bea
     join Person.Address a
@@ -46,9 +44,8 @@ addr_dedup as (
     join Person.CountryRegion cr
         on sp.CountryRegionCode = cr.CountryRegionCode
 ),
-
 addr as (
-    -- 只保留每个 BusinessEntityID 的第 1 条地址
+    -- Only retain the first address for each BusinessEntityID
     select
         BusinessEntityID,
         City,
@@ -59,43 +56,35 @@ addr as (
     where rn = 1
 ),
 
--- 只保留个人客户（PersonID 不为 null）
+-- Only retain the PersonID
 main_customers as (
     select
-        -- ⭐ CustomerKey：直接用 CustomerID（int），保证唯一
-        c.customer_id                               as CustomerKey,
-
-        -- 对业务展示用的客户编号
-        c.account_number                            as CustomerID,
-
-        -- 客户姓名
-        p.FirstName + ' ' + p.LastName              as Customer,
-
-        -- 地址信息
-        addr.City                                   as City,
-        addr.PostalCode                             as PostalCode,
-        addr.StateProvince                          as StateProvince,
-        addr.CountryRegion                          as [Country-Region]
+        -- CustomerKey：CustomerID（int）
+        c.customer_id as CustomerKey,
+        -- Customer ID used for business presentation
+        c.account_number as CustomerID,
+        -- Customer Name
+        p.FirstName + ' ' + p.LastName as Customer,
+        addr.City as City,
+        addr.PostalCode as PostalCode,
+        addr.StateProvince as StateProvince,
+        addr.CountryRegion as [Country-Region]
     from c
-    join p
-        on c.person_id = p.BusinessEntityID
-    left join addr
-        on c.person_id = addr.BusinessEntityID
+    join p on c.person_id = p.BusinessEntityID
+    left join addr on c.person_id = addr.BusinessEntityID
     where c.person_id is not null
 ),
-
--- 给 Reseller / Unknown 预留一个 -1 行
+-- Reserve a -1 line for Reseller
 reseller_placeholder as (
     select
-        -1                                       as CustomerKey,
+        -1 as CustomerKey,
         cast('[Not Applicable]' as nvarchar(20)) as CustomerID,
         cast('[Not Applicable]' as nvarchar(50)) as Customer,
-        cast(null as nvarchar(50))               as City,
-        cast(null as nvarchar(20))               as PostalCode,
-        cast(null as nvarchar(50))               as StateProvince,
-        cast(null as nvarchar(50))               as [Country-Region]
+        cast(null as nvarchar(50)) as City,
+        cast(null as nvarchar(20)) as PostalCode,
+        cast(null as nvarchar(50)) as StateProvince,
+        cast(null as nvarchar(50)) as [Country-Region]
 )
-
 select
     CustomerKey,
     CustomerID,
@@ -105,9 +94,7 @@ select
     PostalCode,
     StateProvince
 from main_customers
-
 union all
-
 select
     CustomerKey,
     CustomerID,

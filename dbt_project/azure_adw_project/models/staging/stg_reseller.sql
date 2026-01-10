@@ -1,60 +1,48 @@
--- ==============================================
 --  Staging for Reseller Dimension (AdventureWorks2022 OLTP)
 --  Combines Store + Geography information
--- ==============================================
-
--- and extract BusinessType from the XML Demographics column
-WITH XMLNAMESPACES (
+-- aextract BusinessType from the XML Demographics column
+with XMLNAMESPACES (
     DEFAULT 'http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/StoreSurvey'
 ),
-
-store_with_address AS (
-    SELECT
-        s.BusinessEntityID                         AS ResellerKey,
-        s.Name                                     AS Reseller,
-        TRY_CAST(s.Demographics AS xml)            AS DemographicsXml,
-
-        a.City                                     AS City,
-        a.PostalCode                               AS PostalCode,
-        sp.Name                                    AS StateProvince,
-        cr.Name                                    AS CountryRegion
-    FROM Sales.Store                    AS s
-    LEFT JOIN Person.BusinessEntityAddress AS bea
+store_with_address as (
+    select
+        s.BusinessEntityID as ResellerKey,
+        s.Name as Reseller,
+        TRY_CAST(s.Demographics as xml) as DemographicsXml,
+        a.City as City,
+        a.PostalCode as PostalCode,
+        sp.Name as StateProvince,
+        cr.Name as CountryRegion
+    from Sales.Store as s
+    left join Person.BusinessEntityAddress as bea
         ON s.BusinessEntityID = bea.BusinessEntityID
-    LEFT JOIN Person.AddressType AS at
+    left join Person.AddressType as at
         ON bea.AddressTypeID = at.AddressTypeID
-    LEFT JOIN Person.Address AS a
+    left join Person.Address as a
         ON bea.AddressID = a.AddressID
-    LEFT JOIN Person.StateProvince AS sp
+    left join Person.StateProvince as sp
         ON a.StateProvinceID = sp.StateProvinceID
-    LEFT JOIN Person.CountryRegion AS cr
+    left join Person.CountryRegion as cr
         ON sp.CountryRegionCode = cr.CountryRegionCode
     -- Keep only the "Main Office" address when it exists
-    WHERE at.Name = 'Main Office'
-       OR at.Name IS NULL
+    where at.Name = 'Main Office'
+       or at.Name IS NULL
 )
-
-SELECT
-    -- Keys / IDs
-    sw.ResellerKey                              AS ResellerKey,
-    sw.ResellerKey                              AS ResellerID,
-
-    -- Name
-    sw.Reseller                                 AS Reseller,
-
+select
+    sw.ResellerKey as ResellerKey,
+    sw.ResellerKey as ResellerID,
+    sw.Reseller as Reseller,
     -- Business Type parsed from XML Demographics
-    CASE
-        WHEN sw.DemographicsXml IS NULL THEN NULL
-        ELSE sw.DemographicsXml.value(
+    case
+        when sw.DemographicsXml IS NULL then NULL
+        else sw.DemographicsXml.value(
                  '(/StoreSurvey/BusinessType/text())[1]',
                  'nvarchar(50)'
              )
-    END                                         AS [Business Type],
-
+    end as [Business Type],
     -- Geography attributes
-    sw.City                                     AS City,
-    sw.StateProvince                            AS [State-Province],
-    sw.CountryRegion                            AS [Country-Region],
-    sw.PostalCode                               AS [Postal Code]
-
-FROM store_with_address AS sw;
+    sw.City as City,
+    sw.StateProvince as [State-Province],
+    sw.CountryRegion as [Country-Region],
+    sw.PostalCode as [Postal Code]
+from store_with_address as sw;

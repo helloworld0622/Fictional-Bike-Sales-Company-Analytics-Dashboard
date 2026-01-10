@@ -12,7 +12,6 @@ from (
         ('454', 'Champions'),
         ('455', 'Champions'),
         ('445', 'Champions'),
-
         -- Loyal
         ('543', 'Loyal'),
         ('444', 'Loyal'),
@@ -22,7 +21,6 @@ from (
         ('345', 'Loyal'),
         ('344', 'Loyal'),
         ('335', 'Loyal'),
-
         -- Potential Loyalist
         ('553', 'Potential Loyalist'),
         ('551', 'Potential Loyalist'),
@@ -48,7 +46,6 @@ from (
         ('341', 'Potential Loyalist'),
         ('333', 'Potential Loyalist'),
         ('323', 'Potential Loyalist'),
-
         -- New Customers
         ('512', 'New Customers'),
         ('511', 'New Customers'),
@@ -57,7 +54,6 @@ from (
         ('412', 'New Customers'),
         ('411', 'New Customers'),
         ('311', 'New Customers'),
-
         -- Promising
         ('525', 'Promising'),
         ('524', 'Promising'),
@@ -75,7 +71,6 @@ from (
         ('315', 'Promising'),
         ('314', 'Promising'),
         ('313', 'Promising'),
-
         -- Need Attention
         ('535', 'Need Attention'),
         ('534', 'Need Attention'),
@@ -85,7 +80,6 @@ from (
         ('334', 'Need Attention'),
         ('325', 'Need Attention'),
         ('324', 'Need Attention'),
-
         -- About To Sleep
         ('331', 'About To Sleep'),
         ('321', 'About To Sleep'),
@@ -95,7 +89,6 @@ from (
         ('231', 'About To Sleep'),
         ('241', 'About To Sleep'),
         ('251', 'About To Sleep'),
-
         -- At Risk
         ('255', 'At Risk'),
         ('254', 'At Risk'),
@@ -119,7 +112,6 @@ from (
         ('133', 'At Risk'),
         ('125', 'At Risk'),
         ('124', 'At Risk'),
-
         -- Cannot Lose Them
         ('155', 'Cannot Lose Them'),
         ('154', 'Cannot Lose Them'),
@@ -129,7 +121,6 @@ from (
         ('115', 'Cannot Lose Them'),
         ('114', 'Cannot Lose Them'),
         ('113', 'Cannot Lose Them'),
-
         -- Hibernating customers
         ('332', 'Hibernating customers'),
         ('322', 'Hibernating customers'),
@@ -141,7 +132,6 @@ from (
         ('122', 'Hibernating customers'),
         ('212', 'Hibernating customers'),
         ('211', 'Hibernating customers'),
-
         -- Lost customers
         ('111', 'Lost customers'),
         ('112', 'Lost customers'),
