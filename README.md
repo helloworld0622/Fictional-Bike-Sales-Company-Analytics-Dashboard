@@ -28,19 +28,9 @@ Marts (Star Schema)
 ↓
 Power BI
 
-### Raw
-- One-to-one representations of source tables  
-- No business logic applied  
-- Preserves source fidelity  
-
-### Staging
-- Cleans and standardizes raw data  
-- Type casting, naming conventions, XML parsing, and joins  
-- Produces stable inputs for analytics modeling  
-- Reseller staging flattens store and geography tables, enforces a single Main Office address per reseller, and extracts BusinessType from XML demographics
   
-### Marts (Dimensional Model)
-- Central fact table: `fact_sales`
+### Star Schema Model
+- Fact table: `fact_sales`
 - Dimensions:
   - Customer
   - Product
@@ -49,9 +39,6 @@ Power BI
   - Date
   - RFM & Customer Segment (derived)
 
-### Marts (Dimensional & Analytical Models)
-
-The marts layer contains **fully defined analytics models**, where business metrics and analytical attributes are explicitly specified and standardized.
 
 #### Fact Model: `fact_sales`
 `fact_sales` is built at **sales order line grain** and serves as the single source of truth for transactional measures.
@@ -60,15 +47,6 @@ Key design choices:
 - Revenue, cost, and profitability metrics are **computed once** in the marts layer.
 - Online and reseller sales are unified in the same fact table, with channel-specific keys populated accordingly.
 - Non-applicable dimensions are handled explicitly using placeholder keys (`-1`) to preserve referential integrity.
-
-Key measures defined in this layer include:
-- Sales Amount
-- Product Cost and Gross Profit
-- Gross Profit Ratio
-- Order quantity, unit price, and discount
-- Order-to-ship lead time (days)
-
-All calculations follow **explicit and deterministic formulas**, ensuring consistent metric definitions across downstream consumers.
 
 ---
 
@@ -93,140 +71,6 @@ RFM metrics and customer segments are **explicitly modeled analytical dimensions
 Customer segments are assigned based on explicitly defined RFM score combinations.
 Each customer receives a three-digit RFM score (R, F, M ∈ {1,…,5}), which is mapped to a business segment as follows:
 
-| Customer Segment         | RFM Score Patterns |
-|--------------------------|--------------------|
-| Champions                | 555, 554, 545, 455, 454, 445 |
-| Loyal                    | 543, 444, 435, 355, 354, 345, 344, 335 |
-| Potential Loyalist       | 553, 552, 551, 542, 541, 533, 532, 531, 453, 452, 451, 442, 441, 433, 432, 423, 353, 352, 351, 342, 341, 333, 323 |
-| New Customers            | 512, 511, 422, 421, 412, 411, 311 |
-| Promising                | 525, 524, 523, 522, 521, 515, 514, 513, 425, 424, 415, 414, 413, 315, 314, 313 |
-| Need Attention           | 535, 534, 443, 434, 343, 334, 325, 324 |
-| About To Sleep           | 331, 321, 312, 251, 241, 231, 221, 213 |
-| At Risk                  | 255, 254, 253, 252, 245, 244, 243, 242, 235, 234, 225, 224, 153, 152, 145, 143, 142, 135, 134, 133, 125, 124 |
-| Cannot Lose Them         | 155, 154, 144, 215, 214, 115, 114, 113 |
-| Hibernating Customers    | 332, 322, 233, 223, 222, 212, 211, 132, 123, 122 |
-| Lost Customers           | 111, 112, 121, 131, 141, 151 |
-
-All segment definitions are centrally maintained in the marts layer.
-No segmentation logic is implemented or overridden in downstream BI tools.
-
-
-## Star Schema
-
-- `fact_sales` contains revenue, gross profit, quantities, and channel
-- Dimension tables provide descriptive slicing and filtering
-- Power BI connects **directly to marts**, without additional transformation layers
-
-```mermaid
-erDiagram
-
-    FACT_SALES {
-        int    SalesOrderLineKey PK
-        int    CustomerKey FK
-        int    ResellerKey FK
-        int    ProductKey FK
-        int    SalesTerritoryKey FK
-        int    OrderDateKey FK
-        int    ShipDateKey FK
-        int    DueDateKey FK
-
-        string Channel
-        int    OrderQuantity
-        float  UnitPrice
-        float  UnitPriceDiscountPct
-        float  ExtendedAmount
-        float  SalesAmount
-        float  ProductStandardCost
-        float  TotalProductCost
-        float  GrossProfit
-        float  GrossProfitRatio
-        int    DaysDifference
-        int    DistinctPurchaseCount
-        date   OrderDate
-        date   ShipDate
-    }
-
-    DIM_CUSTOMER {
-        int    CustomerKey PK
-        string CustomerID
-        string Customer
-        string City
-        string StateProvince
-        string CountryRegion
-        string PostalCode
-    }
-
-    DIM_RESELLER {
-        int    ResellerKey PK
-        string ResellerID
-        string Reseller
-        string BusinessType
-        string City
-        string StateProvince
-        string CountryRegion
-        string PostalCode
-    }
-
-    DIM_PRODUCT {
-        int    ProductKey PK
-        string Product
-        string SKU
-        string Color
-        string Model
-        string Category
-        string Subcategory
-        float  ListPrice
-        float  StandardCost
-    }
-
-    DIM_SALES_TERRITORY {
-        int    SalesTerritoryKey PK
-        string Country
-        string Region
-        string Group
-    }
-
-    DIM_DATE {
-        int    DateKey PK
-        date   Date
-        int    Year
-        int    Month
-        int    MonthKey
-        string MonthName
-        int    FiscalQuarter
-        string FiscalYear
-    }
-
-    DIM_RFM {
-        int    CustomerKey PK
-        int    RValue
-        int    FValue
-        float  MValue
-        int    RScore
-        int    FScore
-        int    MScore
-        string RFM
-    }
-
-    DIM_CUSTOMER_SEGMENT {
-        string Score PK
-        string Segment
-    }
-
-    %% Core star schema relationships
-    FACT_SALES }o--|| DIM_CUSTOMER : CustomerKey
-    FACT_SALES }o--|| DIM_RESELLER : ResellerKey
-    FACT_SALES }o--|| DIM_PRODUCT : ProductKey
-    FACT_SALES }o--|| DIM_SALES_TERRITORY : SalesTerritoryKey
-    FACT_SALES }o--|| DIM_DATE : OrderDateKey
-    FACT_SALES }o--|| DIM_DATE : ShipDateKey
-    FACT_SALES }o--|| DIM_DATE : DueDateKey
-
-    %% Analytical extensions
-    DIM_CUSTOMER ||--|| DIM_RFM : CustomerKey
-    DIM_RFM }o--|| DIM_CUSTOMER_SEGMENT : RFM
-```
-
 ---
 
 ## Data Quality & Governance
@@ -236,17 +80,33 @@ Custom dbt tests validate:
 - Invalid business scenarios (e.g. negative prices, negative gross profit)
 - Schema and analytical completeness (e.g. RFM coverage)
 
-Data quality is treated as an **engineering responsibility**, not a BI concern.
+> Detailed transformation logic, model documentation, and tests are located in `/dbt`.
 
 ---
 
-## BI Consumption
-The marts layer feeds Power BI dashboards covering:
-- Executive sales performance (revenue, units, gross profit)
-- Product profitability and margin analysis
-- Online customer RFM segmentation
+## Power BI Dashboards
 
-All metrics are derived from the marts layer.
+### 1. Executive Performance
+- Revenue
+- Units sold
+- Gross profit
+- YoY comparison
+- Time trend analysis
+![Executive Summary](bi/images/Executive_Summary.jpg)
+
+### 2. Product Profitability
+- Margin vs scale analysis
+- Category and subcategory breakdown
+- Channel comparison (Online vs Reseller)
+- Decomposition tree exploration
+![Product Profitability](bi/images/Product_Profitability.jpg)
+
+### 3. Online Customer RFM
+- Recency, Frequency, Monetary modeling
+- RFM score generation (1–5 scale per metric)
+- Business-defined segment mapping
+- Revenue contribution by segment
+![Online Customer RFM](bi/images/Online_Custome_RFM.jpg)
 
 ---
 
