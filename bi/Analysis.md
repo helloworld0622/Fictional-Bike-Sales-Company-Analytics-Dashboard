@@ -67,7 +67,7 @@ The Power BI report is organized into three main analytical views:
 
 ## 3. Online Customer RFM Analysis
 
-![Online Customer RFM](images/Online_Customer_RMF.png)
+![Online Customer RFM](images/Online_Customer_RMF.jpg)
 
 ### RFM Definition (Standardized in Analytics Layer)
 
