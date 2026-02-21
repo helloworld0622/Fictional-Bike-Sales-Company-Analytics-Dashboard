@@ -12,7 +12,7 @@ The Power BI report is organized into three main analytical views:
 
 ## 1. Executive Summary
 
-![Executive Summary](images/Executive Summary.jpg)
+![Executive Summary](images/Executive_Summary.jpg)
 
 ### Key Metrics
 - Total Revenue
@@ -40,7 +40,7 @@ The Power BI report is organized into three main analytical views:
 
 ## 2. Product Profitability
 
-![Product Profitability](images/Product Profitability.jpg)
+![Product Profitability](images/Product_Profitability.jpg)
 
 ### Metrics Used
 - Total Revenue
@@ -67,7 +67,7 @@ The Power BI report is organized into three main analytical views:
 
 ## 3. Online Customer RFM Analysis
 
-![Online Customer RFM](images/Online Customer RMF.png)
+![Online Customer RFM](images/Online_Customer_RMF.png)
 
 ### RFM Definition (Standardized in Analytics Layer)
 
