@@ -6,7 +6,7 @@ models:
       Sales fact table at sales order line grain (one row per SalesOrderLineKey).
       Combines Online and Reseller channels in one table. For non-applicable dimensions,
       placeholder keys (-1) are used to preserve referential integrity.
-      All core revenue and profitability metrics are computed here to keep BI logic minimal.
+      All core revenue and profitability metrics are calculated here to minimize BI logic.
     columns:
       - name: SalesOrderLineKey
         description: Unique identifier for each sales order line (SalesOrderID + padded SalesOrderDetailID).
@@ -89,14 +89,7 @@ models:
         description: Gross profit margin ratio (Gross Profit / Sales Amount); null when Sales Amount is zero.
 
       - name: Distinct_Purchase_Count2
-        description: Number of distinct purchase dates per online customer (count distinct OrderDateKey), joined back at line level.
-
-    tests:
-      # Optional but recommended: validate channel/keys consistency if you have dbt_utils
-      # - dbt_utils.expression_is_true:
-      #     expression: "NOT (Channel = 'Online' AND ResellerKey <> -1)"
-      # - dbt_utils.expression_is_true:
-      #     expression: "NOT (Channel = 'Reseller' AND CustomerKey <> -1)"
+        description: Number of distinct purchase dates per online customer (count distinct OrderDateKey), joined back at the line level.
 
 
   - name: dim_date
