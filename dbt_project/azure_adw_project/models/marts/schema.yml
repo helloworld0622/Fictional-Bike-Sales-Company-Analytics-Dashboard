@@ -1,54 +1,309 @@
 version: 2
 
 models:
-  - name: dim_customer
-    columns:
-      - name: CustomerKey
-        tests:
-          - not_null
-          - unique
-
-      - name: CustomerID
-        tests:
-          - not_null
-
-  - name: dim_product
-    columns:
-      - name: ProductKey
-        tests:
-          - not_null
-          - unique
-
-  - name: dim_reseller
-    columns:
-      - name: ResellerKey
-        tests:
-          - not_null
-          - unique
-
-  - name: dim_sales_territory
-    columns:
-      - name: SalesTerritoryKey
-        tests:
-          - not_null
-          - unique
-
-  - name: dim_date
-    columns:
-      - name: DateKey
-        tests:
-          - not_null
-          - unique
-
-  - name: dim_rfm
-    columns:
-      - name: CustomerKey
-        tests:
-          - not_null
-          - unique
-
   - name: fact_sales
+    description: >
+      Sales fact table at sales order line grain (one row per SalesOrderLineKey).
+      Combines Online and Reseller channels in one table. For non-applicable dimensions,
+      placeholder keys (-1) are used to preserve referential integrity.
+      All core revenue and profitability metrics are computed here to keep BI logic minimal.
     columns:
       - name: SalesOrderLineKey
+        description: Unique identifier for each sales order line (SalesOrderID + padded SalesOrderDetailID).
+        tests:
+          - unique
+          - not_null
+
+      - name: CustomerKey
+        description: Customer surrogate key for Online sales; set to -1 for Reseller sales.
+        tests:
+          - not_null
+
+      - name: ResellerKey
+        description: Reseller surrogate key (StoreID) for Reseller sales; set to -1 for Online sales.
+        tests:
+          - not_null
+
+      - name: ProductKey
+        description: Product surrogate key (ProductID).
+        tests:
+          - not_null
+
+      - name: SalesTerritoryKey
+        description: Sales territory key (TerritoryID) linked to dim_sales_territory.
+        tests:
+          - not_null
+
+      - name: OrderDateKey
+        description: Order date key in YYYYMMDD integer format.
+        tests:
+          - not_null
+
+      - name: DueDateKey
+        description: Due date key in YYYYMMDD integer format.
+        tests:
+          - not_null
+
+      - name: ShipDateKey
+        description: Ship date key in YYYYMMDD integer format.
+        tests:
+          - not_null
+
+      - name: orderdate
+        description: Order date (date type).
+
+      - name: shipdate
+        description: Ship date (date type).
+
+      - name: DaysDifference
+        description: Lead time in days between order date and ship date (shipdate - orderdate).
+
+      - name: Channel
+        description: Sales channel derived from OnlineOrderFlag (Online or Reseller).
+
+      - name: Order Quantity
+        description: Quantity ordered on the sales order line.
+
+      - name: Unit Price
+        description: Unit price for the sales order line.
+
+      - name: Unit Price Discount Pct
+        description: Discount percentage applied to the unit price.
+
+      - name: Extended Amount
+        description: Extended line total amount from source (after discount), before cost.
+
+      - name: Sales Amount
+        description: Sales revenue amount for the sales order line (same as Extended Amount in this model).
+
+      - name: Product Standard Cost
+        description: Standard unit cost from product dimension.
+
+      - name: Total Product Cost
+        description: Total cost for the line item (Order Quantity * Product Standard Cost).
+
+      - name: Gross Profit
+        description: Profit for the line item (Sales Amount - Total Product Cost).
+
+      - name: Gross_Profit_Ratio
+        description: Gross profit margin ratio (Gross Profit / Sales Amount); null when Sales Amount is zero.
+
+      - name: Distinct_Purchase_Count2
+        description: Number of distinct purchase dates per online customer (count distinct OrderDateKey), joined back at line level.
+
+    tests:
+      # Optional but recommended: validate channel/keys consistency if you have dbt_utils
+      # - dbt_utils.expression_is_true:
+      #     expression: "NOT (Channel = 'Online' AND ResellerKey <> -1)"
+      # - dbt_utils.expression_is_true:
+      #     expression: "NOT (Channel = 'Reseller' AND CustomerKey <> -1)"
+
+
+  - name: dim_date
+    description: >
+      Date dimension generated from min(order_date) to max(ship_date).
+      Includes calendar attributes and a fiscal year definition (FY rolls over in July).
+    columns:
+      - name: DateKey
+        description: Date key in YYYYMMDD integer format.
+        tests:
+          - unique
+          - not_null
+
+      - name: Date
+        description: Calendar date.
+
+      - name: Year
+        description: Calendar year (integer).
+
+      - name: Month
+        description: Calendar month number (1-12).
+
+      - name: MonthKey
+        description: Year-month key in YYYYMM format.
+
+      - name: Month Name
+        description: Month name (e.g., January).
+
+      - name: Fiscal Quarter
+        description: Quarter number based on the calendar date.
+
+      - name: Fiscal Year
+        description: Fiscal year label (FY + year). Fiscal year starts in July.
+
+
+  - name: dim_product
+    description: >
+      Product dimension with resolved category hierarchy (Category/Subcategory) and product model.
+      Built from stg_product and Production product hierarchy tables.
+    columns:
+      - name: ProductKey
+        description: Product surrogate key (ProductID).
+        tests:
+          - unique
+          - not_null
+
+      - name: Product
+        description: Product name.
+
+      - name: SKU
+        description: Product number / SKU.
+
+      - name: Color
+        description: Product color.
+
+      - name: List Price
+        description: List price of the product.
+
+      - name: Standard Cost
+        description: Standard unit cost of the product.
+
+      - name: Category
+        description: Product category.
+
+      - name: Subcategory
+        description: Product subcategory.
+
+      - name: Model
+        description: Product model name.
+
+
+  - name: dim_sales_territory
+    description: >
+      Sales territory dimension with country, group, and region attributes.
+      Joins Sales.SalesTerritory to Person.CountryRegion for country name.
+    columns:
+      - name: SalesTerritoryKey
+        description: Sales territory key (TerritoryID).
+        tests:
+          - unique
+          - not_null
+
+      - name: Country
+        description: Country name.
+
+      - name: Group
+        description: Territory group.
+
+      - name: Region
+        description: Territory region name.
+
+
+  - name: dim_reseller
+    description: >
+      Reseller dimension built from stg_reseller. Includes geography and a business-friendly
+      Business Type mapping (BS/BM/OS to readable labels).
+      Geography may be null if a reseller has no Main Office address in the source.
+    columns:
+      - name: ResellerKey
+        description: Reseller surrogate key (Store BusinessEntityID).
+        tests:
+          - unique
+          - not_null
+
+      - name: Reseller ID
+        description: Formatted reseller identifier for reporting (AW + zero-padded key).
+
+      - name: Reseller
+        description: Reseller name.
+
+      - name: Business Type
+        description: Reseller business type mapped from source codes (BS/BM/OS).
+
+      - name: City
+        description: Reseller city.
+
+      - name: State-Province
+        description: Reseller state/province.
+
+      - name: Country-Region
+        description: Reseller country/region.
+
+      - name: Postal Code
+        description: Reseller postal code.
+
+
+  - name: dim_customer
+    description: >
+      Customer dimension for Online customers (person-based customers).
+      Adds a placeholder row (CustomerKey = -1) to support reseller transactions in fact_sales.
+      Address is deduplicated per BusinessEntityID by prioritizing Home then Main Office.
+    columns:
+      - name: CustomerKey
+        description: Customer surrogate key (CustomerID); includes -1 placeholder row.
+        tests:
+          - unique
+          - not_null
+
+      - name: CustomerID
+        description: Business-facing customer identifier (AccountNumber); '[Not Applicable]' for -1 row.
+
+      - name: Customer
+        description: Customer full name (FirstName + LastName); '[Not Applicable]' for -1 row.
+
+      - name: City
+        description: Customer city.
+
+      - name: Country-Region
+        description: Customer country/region.
+
+      - name: PostalCode
+        description: Customer postal code.
+
+      - name: StateProvince
+        description: Customer state/province.
+
+
+  - name: dim_rfm
+    description: >
+      RFM analytical dimension for Online customers only (CustomerKey <> -1).
+      Recency is days since last purchase. Frequency is count of distinct purchase dates.
+      Monetary is total Sales Amount in the customer's most recent purchase year, with log transform
+      used to reduce skewness for quantile scoring.
+    columns:
+      - name: CustomerKey
+        description: Online customer key (excludes -1).
+        tests:
+          - unique
+          - not_null
+
+      - name: Customer ID
+        description: Customer business identifier (same as CustomerKey in this model).
+
+      - name: R Value
+        description: Recency value (days since customer's last order date).
+
+      - name: F Value
+        description: Frequency value (count of distinct order dates).
+
+      - name: M Value
+        description: Monetary value (total Sales Amount in the customer's last purchase year).
+
+      - name: R Score
+        description: Recency score bucket (5 is most recent, 1 is least recent).
+
+      - name: F Score
+        description: Frequency score bucket (1-5).
+
+      - name: M Score
+        description: Monetary score bucket (1-5); customers with zero monetary are assigned score 1.
+
+      - name: RFM
+        description: Concatenated 3-digit RFM code (RScore + FScore + MScore) used for segment mapping.
+
+
+  - name: dim_customer_segment
+    description: >
+      Business-defined mapping table from 3-digit RFM score to customer segment label.
+      Used to translate RFM codes into readable segments (e.g., Champions, Loyal, At Risk).
+    columns:
+      - name: Score
+        description: 3-digit RFM score code (e.g., 555).
+        tests:
+          - unique
+          - not_null
+
+      - name: Segment
+        description: Segment label associated with the RFM score.
         tests:
           - not_null
