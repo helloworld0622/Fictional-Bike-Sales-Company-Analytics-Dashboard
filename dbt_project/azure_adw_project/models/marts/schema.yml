@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: fact_sales
-    description: >
+    description: 
       Sales fact table at sales order line grain (one row per SalesOrderLineKey).
       Combines Online and Reseller channels in one table. For non-applicable dimensions,
       placeholder keys (-1) are used to preserve referential integrity.
@@ -93,7 +93,7 @@ models:
 
 
   - name: dim_date
-    description: >
+    description: 
       Date dimension generated from min(order_date) to max(ship_date).
       Includes calendar attributes and a fiscal year definition (FY rolls over in July).
     columns:
@@ -126,7 +126,7 @@ models:
 
 
   - name: dim_product
-    description: >
+    description: 
       Product dimension with resolved category hierarchy (Category/Subcategory) and product model.
       Built from stg_product and Production product hierarchy tables.
     columns:
@@ -162,7 +162,7 @@ models:
 
 
   - name: dim_sales_territory
-    description: >
+    description: 
       Sales territory dimension with country, group, and region attributes.
       Joins Sales.SalesTerritory to Person.CountryRegion for country name.
     columns:
@@ -183,7 +183,7 @@ models:
 
 
   - name: dim_reseller
-    description: >
+    description: 
       Reseller dimension built from stg_reseller. Includes geography and a business-friendly
       Business Type mapping (BS/BM/OS to readable labels).
       Geography may be null if a reseller has no Main Office address in the source.
@@ -217,7 +217,7 @@ models:
 
 
   - name: dim_customer
-    description: >
+    description: 
       Customer dimension for Online customers (person-based customers).
       Adds a placeholder row (CustomerKey = -1) to support reseller transactions in fact_sales.
       Address is deduplicated per BusinessEntityID by prioritizing Home then Main Office.
@@ -248,7 +248,7 @@ models:
 
 
   - name: dim_rfm
-    description: >
+    description: 
       RFM analytical dimension for Online customers only (CustomerKey <> -1).
       Recency is days since last purchase. Frequency is count of distinct purchase dates.
       Monetary is total Sales Amount in the customer's most recent purchase year, with log transform
@@ -286,7 +286,7 @@ models:
 
 
   - name: dim_customer_segment
-    description: >
+    description: 
       Business-defined mapping table from 3-digit RFM score to customer segment label.
       Used to translate RFM codes into readable segments (e.g., Champions, Loyal, At Risk).
     columns:
