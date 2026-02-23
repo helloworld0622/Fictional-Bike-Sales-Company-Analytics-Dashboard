@@ -29,7 +29,7 @@ Marts (Star Schema)
 ↓  
 Power BI  
 
-### Refresh story (what refreshes, where)
+
 - **Source**: AdventureWorks OLTP data is loaded into the analytics database.
 - **Transform**: dbt builds **raw → staging → marts**, computing business metrics in the marts layer.
 - **Consume**: Power BI connects **directly to marts** (semantic modeling + measures only).
