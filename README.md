@@ -95,8 +95,7 @@ Custom dbt tests validate:
 ---
 
 ## Tech Stack
-- **Cloud**: Azure  
-- **Warehouse**: Azure SQL / Analytics DB  
+- **Cloud**: Azure   
 - **Transformations**: dbt (SQL)  
 - **Modeling**: Star Schema  
 - **BI**: Power BI  
