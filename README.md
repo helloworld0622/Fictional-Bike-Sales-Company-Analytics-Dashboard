@@ -14,7 +14,6 @@ This project highlights:
 - Designing a **star schema** for scalable BI reporting
 - Enforcing **data quality and referential integrity** (dbt tests)
 - Delivering **BI-ready tables** with minimal downstream transformation logic
-- Maintaining a clear **refresh workflow** and reproducible outputs
 
 ---
 
